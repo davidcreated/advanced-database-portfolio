@@ -1,0 +1,228 @@
+               List of tables
+ Schema |    Name     | Type  |    Owner     
+--------+-------------+-------+--------------
+ ojahub | addresses   | table | davidcreated
+ ojahub | categories  | table | davidcreated
+ ojahub | customers   | table | davidcreated
+ ojahub | order_items | table | davidcreated
+ ojahub | orders      | table | davidcreated
+ ojahub | payments    | table | davidcreated
+ ojahub | products    | table | davidcreated
+ ojahub | reviews     | table | davidcreated
+ ojahub | sellers     | table | davidcreated
+ ojahub | shipments   | table | davidcreated
+ ojahub | states      | table | davidcreated
+(11 rows)
+
+                        Table "ojahub.states"
+   Column   |         Type          | Collation | Nullable | Default 
+------------+-----------------------+-----------+----------+---------
+ state_id   | smallint              |           | not null | 
+ state_name | character varying(40) |           | not null | 
+ region     | character varying(20) |           | not null | 
+Indexes:
+    "states_pkey" PRIMARY KEY, btree (state_id)
+    "states_state_name_key" UNIQUE CONSTRAINT, btree (state_name)
+Check constraints:
+    "states_region_check" CHECK (region::text = ANY (ARRAY['North Central'::character varying, 'North East'::character varying, 'North West'::character varying, 'South East'::character varying, 'South South'::character varying, 'South West'::character varying]::text[]))
+Referenced by:
+    TABLE "ojahub.addresses" CONSTRAINT "addresses_state_id_fkey" FOREIGN KEY (state_id) REFERENCES ojahub.states(state_id)
+    TABLE "ojahub.sellers" CONSTRAINT "sellers_state_id_fkey" FOREIGN KEY (state_id) REFERENCES ojahub.states(state_id)
+
+                                   Table "ojahub.customers"
+   Column    |           Type           | Collation | Nullable |           Default            
+-------------+--------------------------+-----------+----------+------------------------------
+ customer_id | integer                  |           | not null | generated always as identity
+ first_name  | character varying(50)    |           | not null | 
+ last_name   | character varying(50)    |           | not null | 
+ email       | character varying(120)   |           | not null | 
+ phone       | character varying(15)    |           | not null | 
+ created_at  | timestamp with time zone |           | not null | now()
+Indexes:
+    "customers_pkey" PRIMARY KEY, btree (customer_id)
+    "customers_email_key" UNIQUE CONSTRAINT, btree (email)
+    "customers_phone_key" UNIQUE CONSTRAINT, btree (phone)
+Check constraints:
+    "customers_phone_check" CHECK (phone::text ~ '^\+234[0-9]{10}$'::text)
+Referenced by:
+    TABLE "ojahub.addresses" CONSTRAINT "addresses_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES ojahub.customers(customer_id) ON DELETE CASCADE
+    TABLE "ojahub.orders" CONSTRAINT "orders_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES ojahub.customers(customer_id) ON DELETE RESTRICT
+    TABLE "ojahub.reviews" CONSTRAINT "reviews_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES ojahub.customers(customer_id) ON DELETE CASCADE
+
+                                  Table "ojahub.addresses"
+   Column    |          Type          | Collation | Nullable |           Default            
+-------------+------------------------+-----------+----------+------------------------------
+ address_id  | integer                |           | not null | generated always as identity
+ customer_id | integer                |           | not null | 
+ street      | character varying(150) |           | not null | 
+ city        | character varying(60)  |           | not null | 
+ state_id    | smallint               |           | not null | 
+ is_default  | boolean                |           | not null | false
+Indexes:
+    "addresses_pkey" PRIMARY KEY, btree (address_id)
+    "one_default_address_per_customer" UNIQUE, btree (customer_id) WHERE is_default
+Foreign-key constraints:
+    "addresses_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES ojahub.customers(customer_id) ON DELETE CASCADE
+    "addresses_state_id_fkey" FOREIGN KEY (state_id) REFERENCES ojahub.states(state_id)
+Referenced by:
+    TABLE "ojahub.orders" CONSTRAINT "orders_shipping_address_id_fkey" FOREIGN KEY (shipping_address_id) REFERENCES ojahub.addresses(address_id) ON DELETE RESTRICT
+
+                                     Table "ojahub.sellers"
+    Column     |           Type           | Collation | Nullable |           Default            
+---------------+--------------------------+-----------+----------+------------------------------
+ seller_id     | integer                  |           | not null | generated always as identity
+ business_name | character varying(100)   |           | not null | 
+ email         | character varying(120)   |           | not null | 
+ phone         | character varying(15)    |           | not null | 
+ state_id      | smallint                 |           | not null | 
+ joined_at     | timestamp with time zone |           | not null | now()
+ is_verified   | boolean                  |           | not null | false
+Indexes:
+    "sellers_pkey" PRIMARY KEY, btree (seller_id)
+    "sellers_business_name_key" UNIQUE CONSTRAINT, btree (business_name)
+    "sellers_email_key" UNIQUE CONSTRAINT, btree (email)
+    "sellers_phone_key" UNIQUE CONSTRAINT, btree (phone)
+Check constraints:
+    "sellers_phone_check" CHECK (phone::text ~ '^\+234[0-9]{10}$'::text)
+Foreign-key constraints:
+    "sellers_state_id_fkey" FOREIGN KEY (state_id) REFERENCES ojahub.states(state_id)
+Referenced by:
+    TABLE "ojahub.products" CONSTRAINT "products_seller_id_fkey" FOREIGN KEY (seller_id) REFERENCES ojahub.sellers(seller_id) ON DELETE RESTRICT
+
+                                    Table "ojahub.categories"
+       Column       |         Type          | Collation | Nullable |           Default            
+--------------------+-----------------------+-----------+----------+------------------------------
+ category_id        | integer               |           | not null | generated always as identity
+ category_name      | character varying(60) |           | not null | 
+ parent_category_id | integer               |           |          | 
+Indexes:
+    "categories_pkey" PRIMARY KEY, btree (category_id)
+    "categories_category_name_key" UNIQUE CONSTRAINT, btree (category_name)
+Check constraints:
+    "categories_check" CHECK (parent_category_id <> category_id)
+Foreign-key constraints:
+    "categories_parent_category_id_fkey" FOREIGN KEY (parent_category_id) REFERENCES ojahub.categories(category_id) ON DELETE RESTRICT
+Referenced by:
+    TABLE "ojahub.categories" CONSTRAINT "categories_parent_category_id_fkey" FOREIGN KEY (parent_category_id) REFERENCES ojahub.categories(category_id) ON DELETE RESTRICT
+    TABLE "ojahub.products" CONSTRAINT "products_category_id_fkey" FOREIGN KEY (category_id) REFERENCES ojahub.categories(category_id) ON DELETE RESTRICT
+
+                                    Table "ojahub.products"
+    Column    |           Type           | Collation | Nullable |           Default            
+--------------+--------------------------+-----------+----------+------------------------------
+ product_id   | integer                  |           | not null | generated always as identity
+ seller_id    | integer                  |           | not null | 
+ category_id  | integer                  |           | not null | 
+ product_name | character varying(120)   |           | not null | 
+ description  | text                     |           |          | 
+ unit_price   | numeric(12,2)            |           | not null | 
+ stock_qty    | integer                  |           | not null | 0
+ is_active    | boolean                  |           | not null | true
+ created_at   | timestamp with time zone |           | not null | now()
+Indexes:
+    "products_pkey" PRIMARY KEY, btree (product_id)
+    "products_seller_id_product_name_key" UNIQUE CONSTRAINT, btree (seller_id, product_name)
+Check constraints:
+    "products_stock_qty_check" CHECK (stock_qty >= 0)
+    "products_unit_price_check" CHECK (unit_price > 0::numeric)
+Foreign-key constraints:
+    "products_category_id_fkey" FOREIGN KEY (category_id) REFERENCES ojahub.categories(category_id) ON DELETE RESTRICT
+    "products_seller_id_fkey" FOREIGN KEY (seller_id) REFERENCES ojahub.sellers(seller_id) ON DELETE RESTRICT
+Referenced by:
+    TABLE "ojahub.order_items" CONSTRAINT "order_items_product_id_fkey" FOREIGN KEY (product_id) REFERENCES ojahub.products(product_id) ON DELETE RESTRICT
+    TABLE "ojahub.reviews" CONSTRAINT "reviews_product_id_fkey" FOREIGN KEY (product_id) REFERENCES ojahub.products(product_id) ON DELETE CASCADE
+
+                                        Table "ojahub.orders"
+       Column        |           Type           | Collation | Nullable |           Default            
+---------------------+--------------------------+-----------+----------+------------------------------
+ order_id            | integer                  |           | not null | generated always as identity
+ customer_id         | integer                  |           | not null | 
+ shipping_address_id | integer                  |           | not null | 
+ order_status        | character varying(20)    |           | not null | 'pending'::character varying
+ ordered_at          | timestamp with time zone |           | not null | now()
+Indexes:
+    "orders_pkey" PRIMARY KEY, btree (order_id)
+Check constraints:
+    "orders_order_status_check" CHECK (order_status::text = ANY (ARRAY['pending'::character varying, 'paid'::character varying, 'shipped'::character varying, 'delivered'::character varying, 'cancelled'::character varying]::text[]))
+Foreign-key constraints:
+    "orders_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES ojahub.customers(customer_id) ON DELETE RESTRICT
+    "orders_shipping_address_id_fkey" FOREIGN KEY (shipping_address_id) REFERENCES ojahub.addresses(address_id) ON DELETE RESTRICT
+Referenced by:
+    TABLE "ojahub.order_items" CONSTRAINT "order_items_order_id_fkey" FOREIGN KEY (order_id) REFERENCES ojahub.orders(order_id) ON DELETE CASCADE
+    TABLE "ojahub.payments" CONSTRAINT "payments_order_id_fkey" FOREIGN KEY (order_id) REFERENCES ojahub.orders(order_id) ON DELETE RESTRICT
+    TABLE "ojahub.shipments" CONSTRAINT "shipments_order_id_fkey" FOREIGN KEY (order_id) REFERENCES ojahub.orders(order_id) ON DELETE RESTRICT
+
+                 Table "ojahub.order_items"
+   Column   |     Type      | Collation | Nullable | Default 
+------------+---------------+-----------+----------+---------
+ order_id   | integer       |           | not null | 
+ product_id | integer       |           | not null | 
+ quantity   | integer       |           | not null | 
+ unit_price | numeric(12,2) |           | not null | 
+Indexes:
+    "order_items_pkey" PRIMARY KEY, btree (order_id, product_id)
+Check constraints:
+    "order_items_quantity_check" CHECK (quantity > 0)
+    "order_items_unit_price_check" CHECK (unit_price > 0::numeric)
+Foreign-key constraints:
+    "order_items_order_id_fkey" FOREIGN KEY (order_id) REFERENCES ojahub.orders(order_id) ON DELETE CASCADE
+    "order_items_product_id_fkey" FOREIGN KEY (product_id) REFERENCES ojahub.products(product_id) ON DELETE RESTRICT
+
+                                      Table "ojahub.payments"
+     Column     |           Type           | Collation | Nullable |            Default             
+----------------+--------------------------+-----------+----------+--------------------------------
+ payment_id     | integer                  |           | not null | generated always as identity
+ order_id       | integer                  |           | not null | 
+ amount         | numeric(12,2)            |           | not null | 
+ payment_method | character varying(20)    |           | not null | 
+ payment_status | character varying(20)    |           | not null | 'initiated'::character varying
+ reference      | character varying(40)    |           | not null | 
+ created_at     | timestamp with time zone |           | not null | now()
+Indexes:
+    "payments_pkey" PRIMARY KEY, btree (payment_id)
+    "one_successful_payment_per_order" UNIQUE, btree (order_id) WHERE payment_status::text = 'successful'::text
+    "payments_reference_key" UNIQUE CONSTRAINT, btree (reference)
+Check constraints:
+    "payments_amount_check" CHECK (amount > 0::numeric)
+    "payments_payment_method_check" CHECK (payment_method::text = ANY (ARRAY['card'::character varying, 'bank_transfer'::character varying, 'ussd'::character varying, 'pay_on_delivery'::character varying]::text[]))
+    "payments_payment_status_check" CHECK (payment_status::text = ANY (ARRAY['initiated'::character varying, 'successful'::character varying, 'failed'::character varying, 'refunded'::character varying]::text[]))
+Foreign-key constraints:
+    "payments_order_id_fkey" FOREIGN KEY (order_id) REFERENCES ojahub.orders(order_id) ON DELETE RESTRICT
+
+                                      Table "ojahub.shipments"
+     Column      |           Type           | Collation | Nullable |             Default             
+-----------------+--------------------------+-----------+----------+---------------------------------
+ shipment_id     | integer                  |           | not null | generated always as identity
+ order_id        | integer                  |           | not null | 
+ courier         | character varying(40)    |           | not null | 
+ tracking_number | character varying(30)    |           | not null | 
+ shipment_status | character varying(20)    |           | not null | 'processing'::character varying
+ shipped_at      | timestamp with time zone |           |          | 
+ delivered_at    | timestamp with time zone |           |          | 
+Indexes:
+    "shipments_pkey" PRIMARY KEY, btree (shipment_id)
+    "shipments_order_id_key" UNIQUE CONSTRAINT, btree (order_id)
+    "shipments_tracking_number_key" UNIQUE CONSTRAINT, btree (tracking_number)
+Check constraints:
+    "shipments_check" CHECK (delivered_at IS NULL OR shipped_at IS NOT NULL AND delivered_at >= shipped_at)
+    "shipments_shipment_status_check" CHECK (shipment_status::text = ANY (ARRAY['processing'::character varying, 'in_transit'::character varying, 'delivered'::character varying, 'returned'::character varying]::text[]))
+Foreign-key constraints:
+    "shipments_order_id_fkey" FOREIGN KEY (order_id) REFERENCES ojahub.orders(order_id) ON DELETE RESTRICT
+
+                                    Table "ojahub.reviews"
+   Column    |           Type           | Collation | Nullable |           Default            
+-------------+--------------------------+-----------+----------+------------------------------
+ review_id   | integer                  |           | not null | generated always as identity
+ product_id  | integer                  |           | not null | 
+ customer_id | integer                  |           | not null | 
+ rating      | smallint                 |           | not null | 
+ comment     | text                     |           |          | 
+ reviewed_at | timestamp with time zone |           | not null | now()
+Indexes:
+    "reviews_pkey" PRIMARY KEY, btree (review_id)
+    "reviews_product_id_customer_id_key" UNIQUE CONSTRAINT, btree (product_id, customer_id)
+Check constraints:
+    "reviews_rating_check" CHECK (rating >= 1 AND rating <= 5)
+Foreign-key constraints:
+    "reviews_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES ojahub.customers(customer_id) ON DELETE CASCADE
+    "reviews_product_id_fkey" FOREIGN KEY (product_id) REFERENCES ojahub.products(product_id) ON DELETE CASCADE
+
