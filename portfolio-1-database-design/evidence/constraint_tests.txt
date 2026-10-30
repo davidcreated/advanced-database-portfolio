@@ -1,0 +1,110 @@
+SET search_path TO ojahub;
+SET
+
+== Test 1: duplicate customer email (UNIQUE) ==
+INSERT INTO customers (first_name, last_name, email, phone)
+VALUES ('Chiamaka', 'Duplicate', 'chiamaka.okeke@example.ng', '+2348000000001');
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:9: ERROR:  duplicate key value violates unique constraint "customers_email_key"
+DETAIL:  Key (email)=(chiamaka.okeke@example.ng) already exists.
+
+== Test 2: phone number not in +234 format (CHECK) ==
+INSERT INTO customers (first_name, last_name, email, phone)
+VALUES ('Kemi', 'Ajayi', 'kemi.ajayi@example.ng', '08031234567');
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:13: ERROR:  new row for relation "customers" violates check constraint "customers_phone_check"
+DETAIL:  Failing row contains (12, Kemi, Ajayi, kemi.ajayi@example.ng, 08031234567, 2026-10-30 19:02:37.11247+01).
+
+== Test 3: negative stock (CHECK) ==
+UPDATE products SET stock_qty = -1 WHERE product_id = 1;
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:16: ERROR:  new row for relation "products" violates check constraint "products_stock_qty_check"
+DETAIL:  Failing row contains (1, 2, 2, Tecno Spark 20, 128GB, 8GB RAM, dual SIM, 189000.00, -1, t, 2026-10-30 19:02:08.763486+01).
+
+== Test 4: product priced at zero (CHECK) ==
+INSERT INTO products (seller_id, category_id, product_name, unit_price)
+VALUES (2, 3, 'Free Phone Case', 0);
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:20: ERROR:  new row for relation "products" violates check constraint "products_unit_price_check"
+DETAIL:  Failing row contains (15, 2, 3, Free Phone Case, null, 0.00, 0, t, 2026-10-30 19:02:37.113882+01).
+
+== Test 5: rating outside 1 to 5 (CHECK) ==
+INSERT INTO reviews (product_id, customer_id, rating) VALUES (2, 4, 6);
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:23: ERROR:  new row for relation "reviews" violates check constraint "reviews_rating_check"
+DETAIL:  Failing row contains (7, 2, 4, 6, null, 2026-10-30 19:02:37.114131+01).
+
+== Test 6: second review of the same product by the same customer (UNIQUE) ==
+INSERT INTO reviews (product_id, customer_id, rating) VALUES (1, 1, 1);
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:26: ERROR:  duplicate key value violates unique constraint "reviews_product_id_customer_id_key"
+DETAIL:  Key (product_id, customer_id)=(1, 1) already exists.
+
+== Test 7: order for a customer that does not exist (FOREIGN KEY) ==
+INSERT INTO orders (customer_id, shipping_address_id) VALUES (999, 1);
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:29: ERROR:  insert or update on table "orders" violates foreign key constraint "orders_customer_id_fkey"
+DETAIL:  Key (customer_id)=(999) is not present in table "customers".
+
+== Test 8: second successful payment on an already paid order (partial UNIQUE index) ==
+INSERT INTO payments (order_id, amount, payment_method, payment_status, reference)
+VALUES (1, 226000.00, 'card', 'successful', 'OJH-PAY-TEST01');
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:33: ERROR:  duplicate key value violates unique constraint "one_successful_payment_per_order"
+DETAIL:  Key (order_id)=(1) already exists.
+
+== Test 9: second default address for one customer (partial UNIQUE index) ==
+UPDATE addresses SET is_default = true WHERE address_id = 11;
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:36: ERROR:  duplicate key value violates unique constraint "one_default_address_per_customer"
+DETAIL:  Key (customer_id)=(1) already exists.
+
+== Test 10: delivery recorded before shipping (CHECK) ==
+UPDATE shipments SET delivered_at = shipped_at - INTERVAL '1 day' WHERE order_id = 3;
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:39: ERROR:  new row for relation "shipments" violates check constraint "shipments_check"
+DETAIL:  Failing row contains (3, 3, GIG Logistics, GIG7730019982, in_transit, 2026-10-14 11:20:00+01, 2026-10-13 11:20:00+01).
+
+== Test 11: unknown order status (CHECK) ==
+UPDATE orders SET order_status = 'lost' WHERE order_id = 5;
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:42: ERROR:  new row for relation "orders" violates check constraint "orders_order_status_check"
+DETAIL:  Failing row contains (5, 5, 5, lost, 2026-10-25 22:18:00+01).
+
+== Test 12: deleting a seller who still has products (FOREIGN KEY, ON DELETE RESTRICT) ==
+DELETE FROM sellers WHERE seller_id = 2;
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:45: ERROR:  update or delete on table "sellers" violates RESTRICT setting of foreign key constraint "products_seller_id_fkey" on table "products"
+DETAIL:  Key (seller_id)=(2) is referenced from table "products".
+
+== Test 13: category set as its own parent (CHECK) ==
+UPDATE categories SET parent_category_id = category_id WHERE category_id = 2;
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:48: ERROR:  new row for relation "categories" violates check constraint "categories_check"
+DETAIL:  Failing row contains (2, Phones, 2).
+
+== Test 14: order item with zero quantity (CHECK) ==
+INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES (5, 1, 0, 189000.00);
+psql:portfolio-1-database-design/sql/03_constraint_tests.sql:51: ERROR:  new row for relation "order_items" violates check constraint "order_items_quantity_check"
+DETAIL:  Failing row contains (5, 1, 0, 189000.00).
+
+== Test 15 (should succeed): a failed payment retry on an order is still allowed ==
+BEGIN;
+BEGIN
+INSERT INTO payments (order_id, amount, payment_method, payment_status, reference)
+VALUES (5, 34800.00, 'card', 'failed', 'OJH-PAY-TEST02');
+INSERT 0 1
+SELECT order_id, payment_status, count(*) FROM payments WHERE order_id = 5 GROUP BY 1, 2 ORDER BY 2;
+ order_id | payment_status | count 
+----------+----------------+-------
+        5 | failed         |     1
+        5 | initiated      |     1
+(2 rows)
+
+ROLLBACK;
+ROLLBACK
+
+== Row counts after the tests (should match the seed exactly) ==
+SELECT 'customers' AS table_name, count(*) FROM customers
+UNION ALL SELECT 'products', count(*) FROM products
+UNION ALL SELECT 'reviews', count(*) FROM reviews
+UNION ALL SELECT 'orders', count(*) FROM orders
+UNION ALL SELECT 'payments', count(*) FROM payments
+UNION ALL SELECT 'sellers', count(*) FROM sellers;
+ table_name | count 
+------------+-------
+ customers  |    10
+ products   |    14
+ reviews    |     6
+ orders     |    10
+ payments   |    12
+ sellers    |     5
+(6 rows)
+

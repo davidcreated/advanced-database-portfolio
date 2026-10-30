@@ -60,7 +60,7 @@ PostgreSQL 18 running locally on macOS through Homebrew, with psql for running s
 
 | Portfolio | Activity | Status |
 | --- | --- | --- |
-| 1 | Database Design and Modelling | In progress |
+| 1 | Database Design and Modelling | Complete |
 | 2 | Query Processing and Optimisation | Not started |
 | 3 | Transactions and Concurrency | Not started |
 | 4 | NoSQL and Advanced Data Models | Not started |

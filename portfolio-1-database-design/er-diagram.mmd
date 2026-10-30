@@ -1,0 +1,101 @@
+erDiagram
+    CUSTOMERS ||--o{ ADDRESSES : has
+    CUSTOMERS ||--o{ ORDERS : places
+    CUSTOMERS ||--o{ REVIEWS : writes
+    ADDRESSES ||--o{ ORDERS : "ships to"
+    ORDERS ||--|{ ORDER_ITEMS : contains
+    ORDERS ||--o{ PAYMENTS : "paid by"
+    ORDERS ||--o| SHIPMENTS : "delivered by"
+    PRODUCTS ||--o{ ORDER_ITEMS : "appears in"
+    PRODUCTS ||--o{ REVIEWS : receives
+    SELLERS ||--o{ PRODUCTS : lists
+    CATEGORIES ||--o{ PRODUCTS : groups
+    CATEGORIES |o--o{ CATEGORIES : "parent of"
+    STATES ||--o{ ADDRESSES : "located in"
+    STATES ||--o{ SELLERS : "based in"
+
+    STATES {
+        smallint state_id PK
+        varchar state_name UK
+        varchar region
+    }
+    CUSTOMERS {
+        int customer_id PK
+        varchar first_name
+        varchar last_name
+        varchar email UK
+        varchar phone UK
+        timestamptz created_at
+    }
+    ADDRESSES {
+        int address_id PK
+        int customer_id FK
+        varchar street
+        varchar city
+        smallint state_id FK
+        boolean is_default
+    }
+    SELLERS {
+        int seller_id PK
+        varchar business_name UK
+        varchar email UK
+        varchar phone UK
+        smallint state_id FK
+        timestamptz joined_at
+        boolean is_verified
+    }
+    CATEGORIES {
+        int category_id PK
+        varchar category_name UK
+        int parent_category_id FK
+    }
+    PRODUCTS {
+        int product_id PK
+        int seller_id FK
+        int category_id FK
+        varchar product_name
+        text description
+        numeric unit_price
+        int stock_qty
+        boolean is_active
+        timestamptz created_at
+    }
+    ORDERS {
+        int order_id PK
+        int customer_id FK
+        int shipping_address_id FK
+        varchar order_status
+        timestamptz ordered_at
+    }
+    ORDER_ITEMS {
+        int order_id PK,FK
+        int product_id PK,FK
+        int quantity
+        numeric unit_price
+    }
+    PAYMENTS {
+        int payment_id PK
+        int order_id FK
+        numeric amount
+        varchar payment_method
+        varchar payment_status
+        varchar reference UK
+        timestamptz created_at
+    }
+    SHIPMENTS {
+        int shipment_id PK
+        int order_id FK,UK
+        varchar courier
+        varchar tracking_number UK
+        varchar shipment_status
+        timestamptz shipped_at
+        timestamptz delivered_at
+    }
+    REVIEWS {
+        int review_id PK
+        int product_id FK
+        int customer_id FK
+        smallint rating
+        text comment
+        timestamptz reviewed_at
+    }
