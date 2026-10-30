@@ -15,6 +15,7 @@ This activity covers the relational design for OjaHub Marketplace, my case study
 | [sql/03_constraint_tests.sql](sql/03_constraint_tests.sql) | Tries to break each business rule |
 | [sql/04_integrity_checks.sql](sql/04_integrity_checks.sql) | Row counts and cross table consistency checks |
 | [evidence/](evidence/) | Real psql output from running the scripts |
+| [screenshots/](screenshots/) | Screenshots of each step running in the terminal |
 
 
 ## ER Diagram
@@ -117,6 +118,29 @@ The schema script drops and recreates the `ojahub` schema, so the scripts can be
 The integrity script also checks that every successful payment amount matches the sum of its order items, and that every review was written by a customer who actually bought that product. Both checks return zero rows.
 
 **Constraint tests:** the test script runs fourteen statements that each break one rule. All fourteen were rejected by the exact constraint they targeted. Test 15 confirms that a failed payment retry is still accepted, and the final row counts show the data was left unchanged. The full output is in [evidence/constraint_tests.txt](evidence/constraint_tests.txt), and a describe of every table is in [evidence/schema_describe.txt](evidence/schema_describe.txt).
+
+
+## Screenshots
+
+**1. Creating the schema.** All eleven tables created with no errors. The NOTICE at the top is the script clearing out the previous run before rebuilding.
+
+![Schema created](screenshots/01_schema_created.png)
+
+**2. Loading the sample data.** One INSERT per table, with the number of rows added.
+
+![Seed data loaded](screenshots/02_seed_loaded.png)
+
+**3. Constraint tests.** Every rule breaking statement is rejected and names the constraint that stopped it. Test 15 shows a failed payment retry being accepted, and the counts at the bottom show nothing changed.
+
+![Constraint tests](screenshots/03_constraint_tests.png)
+
+**4. The products table as PostgreSQL sees it.** Primary key, unique key, check constraints, foreign keys, and the tables that reference it.
+
+![Products table constraints](screenshots/04_products_constraints.png)
+
+**5. Integrity checks.** Row counts for every table, both consistency checks returning zero rows, and the order totals computed from order_items.
+
+![Integrity checks](screenshots/05_integrity_checks.png)
 
 
 ## What I Would Revisit
