@@ -13,6 +13,7 @@ This activity covers the relational design for OjaHub Marketplace, my case study
 | [sql/01_schema.sql](sql/01_schema.sql) | Creates all eleven tables with keys and constraints |
 | [sql/02_seed.sql](sql/02_seed.sql) | Loads realistic sample data |
 | [sql/03_constraint_tests.sql](sql/03_constraint_tests.sql) | Tries to break each business rule |
+| [sql/04_integrity_checks.sql](sql/04_integrity_checks.sql) | Row counts and cross table consistency checks |
 | [evidence/](evidence/) | Real psql output from running the scripts |
 
 
@@ -92,9 +93,10 @@ createdb ojahub
 psql -d ojahub -v ON_ERROR_STOP=1 -f sql/01_schema.sql
 psql -d ojahub -v ON_ERROR_STOP=1 -f sql/02_seed.sql
 psql -d ojahub -e -f sql/03_constraint_tests.sql
+psql -d ojahub -f sql/04_integrity_checks.sql
 ```
 
-The schema script drops and recreates the `ojahub` schema, so the three scripts can be rerun from a clean state at any time.
+The schema script drops and recreates the `ojahub` schema, so the scripts can be rerun from a clean state at any time.
 
 **Results after loading the seed data:**
 
@@ -112,7 +114,7 @@ The schema script drops and recreates the `ojahub` schema, so the three scripts 
 | shipments | 8 |
 | reviews | 6 |
 
-I also checked that every successful payment amount matches the sum of its order items, and that every review was written by a customer who actually bought that product. Both checks came back clean.
+The integrity script also checks that every successful payment amount matches the sum of its order items, and that every review was written by a customer who actually bought that product. Both checks return zero rows.
 
 **Constraint tests:** the test script runs fourteen statements that each break one rule. All fourteen were rejected by the exact constraint they targeted. Test 15 confirms that a failed payment retry is still accepted, and the final row counts show the data was left unchanged. The full output is in [evidence/constraint_tests.txt](evidence/constraint_tests.txt), and a describe of every table is in [evidence/schema_describe.txt](evidence/schema_describe.txt).
 
