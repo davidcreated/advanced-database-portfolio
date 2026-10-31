@@ -4,16 +4,17 @@
 ========== 2. The primary process on 27018 is killed with kill -9 (a crash, not a clean shutdown) ==========
 
 ========== 3. What the order traffic experienced ==========
-  attempts 172, acknowledged 167, failed 5 (MongoServerSelectionError)
-  last write acknowledged by the old primary: -95 ms relative to the kill
-  first write acknowledged after the kill:    10708 ms after the kill
-  writes were unavailable for about 10.8 s
+  attempts 177, acknowledged 173, failed 4 (MongoServerSelectionError)
+  last write acknowledged by the old primary: -21 ms relative to the kill
+  first write acknowledged after the kill:    10364 ms after the kill
+  writes were unavailable for about 10.4 s
   new primary: localhost:27019
 
 ========== 4. Was any acknowledged order lost? ==========
-  acknowledged 167, present on the new primary 167, lost 0
+  acknowledged 173, present on the new primary 173, lost 0
 
 ========== 5. The old primary is restarted and rejoins ==========
-  +1s  27018 SECONDARY, 27019 PRIMARY, 27020 SECONDARY
-  +12s  27018 PRIMARY, 27019 SECONDARY, 27020 SECONDARY
+  +1s  27018 (not reachable/healthy), 27019 PRIMARY, 27020 SECONDARY
+  +8s  27018 SECONDARY, 27019 PRIMARY, 27020 SECONDARY
+  +19s  27018 PRIMARY, 27019 SECONDARY, 27020 SECONDARY
   27018 has the highest priority, so once it has caught up it takes the primary role back

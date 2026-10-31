@@ -1,0 +1,6 @@
+started ojahub-cfg on 27030
+started north on 27031
+started south on 27032
+started mongos router on 27040
+  shard north at north/localhost:27031
+  shard south at south/localhost:27032

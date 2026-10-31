@@ -1,11 +1,11 @@
 ========== 1. Asynchronous: the primary commits without waiting for the replica ==========
   replica sync_state: async
-  local          500 commits, average commit latency 0.100 ms
+  local          500 commits, average commit latency 0.089 ms
 
 ========== 2. Synchronous: the primary waits for the replica on every commit ==========
   replica sync_state: sync
-  on             500 commits, average commit latency 0.149 ms
-  remote_apply   500 commits, average commit latency 0.141 ms
+  on             500 commits, average commit latency 0.143 ms
+  remote_apply   500 commits, average commit latency 0.139 ms
   on           = wait until the replica has the commit safely on disk
   remote_apply = also wait until it is visible to queries on the replica
 
