@@ -1,0 +1,28 @@
+{
+  "_id": 1,
+  "first_name": "Chiamaka",
+  "last_name": "Okeke",
+  "email": "chiamaka.okeke@example.ng",
+  "phone": "+2348031234501",
+  "created_at": {
+    "$date": "2026-06-14T09:12:00Z"
+  },
+  "addresses": [
+    {
+      "address_id": 1,
+      "street": "14 Adeola Odeku Street",
+      "city": "Victoria Island",
+      "state": "Lagos",
+      "region": "South West",
+      "is_default": true
+    },
+    {
+      "address_id": 11,
+      "street": "2 Broad Street, 4th Floor",
+      "city": "Lagos Island",
+      "state": "Lagos",
+      "region": "South West",
+      "is_default": false
+    }
+  ]
+}

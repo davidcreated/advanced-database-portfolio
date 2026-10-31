@@ -1,0 +1,50 @@
+
+== Q1: Product page for product 1, with seller, rating and latest reviews ==
+{"_id":1,"name":"Tecno Spark 20","price":{"$numberDecimal":"189000.00"},"seller":{"seller_id":2,"business_name":"Lagos Gadget Hub","state":"Lagos","verified":true},"rating":{"count":2,"average":4.5},"latest_reviews":[{"rating":5},{"rating":4}]}
+
+== Q2: Order page for order 245678, with items, payments and shipment ==
+{"_id":245678,"status":"delivered","items":[{"name":"Nokia G42 OJ035076"}],"total":{"$numberDecimal":"692400.00"},"payments":[{"status":"successful"}],"shipment":{"status":"delivered"}}
+
+== Q3: Order history for customer 4821, newest first ==
+{"_id":490598,"status":"delivered","ordered_at":{"$date":"2026-10-19T20:18:43.736Z"},"total":{"$numberDecimal":"631000.00"}}
+{"_id":487312,"status":"delivered","ordered_at":{"$date":"2026-10-16T01:43:23.792Z"},"total":{"$numberDecimal":"181400.00"}}
+{"_id":477876,"status":"cancelled","ordered_at":{"$date":"2026-10-05T00:15:05.445Z"},"total":{"$numberDecimal":"403500.00"}}
+{"_id":385048,"status":"delivered","ordered_at":{"$date":"2026-06-15T13:13:31.314Z"},"total":{"$numberDecimal":"41500.00"}}
+{"_id":303701,"status":"delivered","ordered_at":{"$date":"2026-03-05T07:47:52.614Z"},"total":{"$numberDecimal":"294800.00"}}
+{"_id":250901,"status":"delivered","ordered_at":{"$date":"2025-12-25T16:34:12.420Z"},"total":{"$numberDecimal":"800500.00"}}
+{"_id":166691,"status":"cancelled","ordered_at":{"$date":"2025-08-30T05:52:40.939Z"},"total":{"$numberDecimal":"13700.00"}}
+{"_id":111505,"status":"delivered","ordered_at":{"$date":"2025-06-07T22:26:52.235Z"},"total":{"$numberDecimal":"69400.00"}}
+{"_id":91198,"status":"delivered","ordered_at":{"$date":"2025-05-05T21:55:18.761Z"},"total":{"$numberDecimal":"333100.00"}}
+{"_id":9364,"status":"delivered","ordered_at":{"$date":"2024-12-01T02:40:08.141Z"},"total":{"$numberDecimal":"241000.00"}}
+
+== Q4: Active phones with at least 8GB RAM and 256GB storage, cheapest first ==
+{"_id":13355,"name":"Nokia G42 OJ087247","price":{"$numberDecimal":"60200.00"},"attributes":{"storage_gb":256,"ram_gb":12,"network":"4G","dual_sim":false}}
+{"_id":6308,"name":"Infinix Note 40 OJ067956","price":{"$numberDecimal":"60200.00"},"attributes":{"storage_gb":256,"ram_gb":8,"network":"5G","dual_sim":true}}
+{"_id":11735,"name":"Redmi 13C OJ094604","price":{"$numberDecimal":"60300.00"},"attributes":{"storage_gb":256,"ram_gb":12,"network":"4G","dual_sim":false}}
+{"_id":9335,"name":"Samsung Galaxy A15 OJ017244","price":{"$numberDecimal":"60300.00"},"attributes":{"storage_gb":256,"ram_gb":12,"network":"4G","dual_sim":false}}
+{"_id":7256,"name":"itel A70 OJ003813","price":{"$numberDecimal":"60400.00"},"attributes":{"storage_gb":256,"ram_gb":8,"network":"5G","dual_sim":true}}
+
+== Q5: Search: products whose name contains basmati ==
+{"matches":1773}
+
+== Q6: Monthly revenue by region for the last quarter (aggregation pipeline) ==
+{"_id":{"month":{"$date":"2026-07-31T23:00:00Z"},"region":"North Central"},"orders":4625,"revenue":{"$numberDecimal":"1665018000.00"}}
+{"_id":{"month":{"$date":"2026-07-31T23:00:00Z"},"region":"North East"},"orders":1918,"revenue":{"$numberDecimal":"688502600.00"}}
+{"_id":{"month":{"$date":"2026-07-31T23:00:00Z"},"region":"North West"},"orders":3679,"revenue":{"$numberDecimal":"1278374300.00"}}
+{"_id":{"month":{"$date":"2026-07-31T23:00:00Z"},"region":"South East"},"orders":1591,"revenue":{"$numberDecimal":"564415000.00"}}
+{"_id":{"month":{"$date":"2026-07-31T23:00:00Z"},"region":"South South"},"orders":3211,"revenue":{"$numberDecimal":"1113461100.00"}}
+{"_id":{"month":{"$date":"2026-07-31T23:00:00Z"},"region":"South West"},"orders":9321,"revenue":{"$numberDecimal":"3178077800.00"}}
+
+== Q7: Graph traversal: every category under Electronics and how many products they hold ($graphLookup) ==
+{"parent":"Electronics","subcategory":"Accessories","depth":0,"products":16557}
+{"parent":"Electronics","subcategory":"Phones","depth":0,"products":16702}
+
+========== Before indexes (median of 6 warm runs) ==========
+q | median ms | plan | keys examined | docs examined
+1 | 0.98 | EXPRESS_IXSCAN | 1 | 1
+2 | 0.76 | EXPRESS_IXSCAN | 1 | 1
+3 | 80.32 | SORT > COLLSCAN | 0 | 500010
+4 | 18.79 | SORT > COLLSCAN | 0 | 100014
+5 | 21.44 | COLLSCAN | 0 | 100014
+6 | 163.67 | GROUP > COLLSCAN > $cursor > $sort | 0 | 500010
+7 | 38.65 | PROJECTION_SIMPLE > COLLSCAN > $cursor > $graphLookup > $lookup > $project > $sort | 0 | 8
