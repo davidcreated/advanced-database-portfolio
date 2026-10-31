@@ -1,0 +1,21 @@
+========== 1. Members and how far behind the primary they are ==========
+  localhost:27018  PRIMARY    behind primary: 0s
+  localhost:27019  SECONDARY  behind primary: 15s
+  localhost:27020  SECONDARY  behind primary: 15s
+
+========== 2. Write concern: who has to confirm a write before it counts ==========
+  {"w":1}                average 0.419 ms per write
+  {"w":1,"j":true}       average 10.445 ms per write
+  {"w":3}                average 0.726 ms per write
+  {"w":3,"j":true}       average 10.883 ms per write
+  {"w":"majority"}       average 9.833 ms per write
+  w: 1 = primary only, w: 3 = every member, majority = 2 of 3 members
+  j: true = wait until the write is in the on disk journal, not just applied in memory
+  majority writes are journaled by default, which is why they cost more than an unjournaled w: 3
+
+========== 3. Reading your own write from a secondary ==========
+  secondary reads are served by Folorunsho-Robertss-MacBook-Air.local:27019
+  plain:  write to the primary with w: 1, read straight back from a secondary  ->  stale reads: 125 of 300
+  causal: same loop inside a causally consistent session, majority write and read  ->  stale reads: 0 of 300
+
+Test collection dropped
