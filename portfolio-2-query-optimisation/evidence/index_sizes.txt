@@ -1,0 +1,60 @@
+SET
+DROP INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+psql:portfolio-2-query-optimisation/sql/05_indexes.sql:19: NOTICE:  extension "pg_trgm" already exists, skipping
+CREATE EXTENSION
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ANALYZE
+
+== Size of the partial pending index compared with an equivalent full index ==
+CREATE INDEX
+               index_kind                | size  
+-----------------------------------------+-------
+ partial: WHERE order_status = 'pending' | 56 kB
+ full: (order_status, ordered_at)        | 19 MB
+(2 rows)
+
+DROP INDEX
+
+== How closely the physical row order follows each column (1.0 means perfectly sorted) ==
+ column_name | correlation 
+-------------+-------------
+ customer_id |      0.0062
+ ordered_at  |      0.9998
+(2 rows)
+
+
+== Because orders are stored in date order, a BRIN index could replace the B-tree on ordered_at ==
+CREATE INDEX
+      index_kind      | size  
+----------------------+-------
+ B-tree on ordered_at | 11 MB
+ BRIN on ordered_at   | 24 kB
+(2 rows)
+
+DROP INDEX
+
+== All indexes on the main tables with their sizes ==
+ table_name  |             index_name              | index_size | table_size 
+-------------+-------------------------------------+------------+------------
+ order_items | order_items_pkey                    | 25 MB      | 58 MB
+ order_items | order_items_product_idx             | 9576 kB    | 58 MB
+ orders      | orders_customer_ordered_idx         | 15 MB      | 34 MB
+ orders      | orders_pkey                         | 13 MB      | 34 MB
+ orders      | orders_ordered_at_idx               | 11 MB      | 34 MB
+ orders      | orders_pending_idx                  | 56 kB      | 34 MB
+ payments    | payments_reference_key              | 17 MB      | 47 MB
+ payments    | payments_pkey                       | 12 MB      | 47 MB
+ payments    | payments_order_idx                  | 12 MB      | 47 MB
+ payments    | one_successful_payment_per_order    | 10 MB      | 47 MB
+ products    | products_seller_id_product_name_key | 6392 kB    | 9896 kB
+ products    | products_name_trgm_idx              | 5200 kB    | 9896 kB
+ products    | products_pkey                       | 2208 kB    | 9896 kB
+ reviews     | reviews_product_id_customer_id_key  | 3040 kB    | 7608 kB
+ reviews     | reviews_pkey                        | 2424 kB    | 7608 kB
+(15 rows)
+
