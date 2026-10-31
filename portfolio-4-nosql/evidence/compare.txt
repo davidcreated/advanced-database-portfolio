@@ -1,10 +1,10 @@
 ========== Same question, both databases (client side median ms of 6 warm runs) ==========
 Question                                                     PostgreSQL    MongoDB
-Order page (order 245678 with items, payments, shipment)           0.91       0.44
-Order history for customer 4821                                    0.65       0.57
-Monthly revenue by region, last quarter                          100.21      87.51
-Search: names containing basmati                                   1.40       4.26
+Order page (order 245678 with items, payments, shipment)           1.16       0.54
+Order history for customer 4821                                    1.24       0.68
+Monthly revenue by region, last quarter                          102.64      87.84
+Search: names containing basmati                                   1.52       3.96
 
 ========== Storage for the whole OjaHub dataset ==========
 PostgreSQL tables:  208.9 MB data, 197.9 MB indexes
-MongoDB collections: 147.5 MB data on disk (compressed), 27.9 MB indexes, 438.3 MB data before compression
+MongoDB collections: 145.1 MB data on disk (compressed), 27.8 MB indexes, 438.3 MB data before compression

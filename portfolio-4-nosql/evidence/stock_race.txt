@@ -17,9 +17,9 @@ buyer 2: sold out
 buyer 3: sold out
 buyer 4: sold out
 buyer 5: sold out
-buyer 6: sold out
+buyer 6: bought
 buyer 7: sold out
 buyer 8: sold out
 buyer 9: sold out
-buyer 10: bought
+buyer 10: sold out
 Result: orders placed 1, stock now 0, units that existed 1
