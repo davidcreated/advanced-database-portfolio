@@ -1,0 +1,13 @@
+Document counts, PostgreSQL rows against MongoDB documents:
+  categories         8        8  match
+  products      100014   100014  match
+  customers      50010    50010  match
+  orders        500010   500010  match
+  reviews       110046   110046  match
+
+Spot check of three orders (total and number of items):
+  order 2       PostgreSQL 44000.00 / 1     MongoDB 44000.00 / 1     match
+  order 245678  PostgreSQL 692400.00 / 1    MongoDB 692400.00 / 1    match
+  order 500010  PostgreSQL 193100.00 / 3    MongoDB 193100.00 / 3    match
+
+Saved sample documents: category.json, product.json, customer.json, order.json, review.json

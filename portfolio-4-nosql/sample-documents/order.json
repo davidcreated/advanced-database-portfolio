@@ -1,0 +1,65 @@
+{
+  "_id": 2,
+  "customer": {
+    "customer_id": 2,
+    "name": "Ibrahim Musa"
+  },
+  "status": "delivered",
+  "ordered_at": {
+    "$date": "2026-09-05T19:10:00Z"
+  },
+  "shipping_address": {
+    "street": "7 Zoo Road",
+    "city": "Kano",
+    "state": "Kano",
+    "region": "North West"
+  },
+  "items": [
+    {
+      "product_id": 8,
+      "name": "Leather Sandals",
+      "quantity": 2,
+      "unit_price": {
+        "$numberDecimal": "22000.00"
+      }
+    }
+  ],
+  "total": {
+    "$numberDecimal": "44000.00"
+  },
+  "payments": [
+    {
+      "method": "card",
+      "status": "failed",
+      "amount": {
+        "$numberDecimal": "44000.00"
+      },
+      "reference": "OJH-PAY-000002",
+      "created_at": {
+        "$date": "2026-09-05T19:12:00Z"
+      }
+    },
+    {
+      "method": "bank_transfer",
+      "status": "successful",
+      "amount": {
+        "$numberDecimal": "44000.00"
+      },
+      "reference": "OJH-PAY-000003",
+      "created_at": {
+        "$date": "2026-09-05T19:19:00Z"
+      }
+    }
+  ],
+  "shipment": {
+    "courier": "Red Star Express",
+    "tracking_number": "RSE5521840017",
+    "status": "delivered",
+    "shipped_at": {
+      "$date": "2026-09-07T08:30:00Z"
+    },
+    "delivered_at": {
+      "$date": "2026-09-10T11:15:00Z"
+    }
+  }
+}

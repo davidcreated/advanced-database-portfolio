@@ -1,0 +1,10 @@
+{
+  "_id": 1,
+  "product_id": 1,
+  "customer_id": 1,
+  "rating": 5,
+  "comment": "Phone came sealed and works perfectly. Fast delivery to VI.",
+  "reviewed_at": {
+    "$date": "2026-09-07T17:20:00Z"
+  }
+}
