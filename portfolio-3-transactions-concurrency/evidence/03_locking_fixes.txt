@@ -1,5 +1,5 @@
-[buyer_a] connected as backend 90832
-[buyer_b] connected as backend 90833
+[buyer_a] connected as backend 91661
+[buyer_b] connected as backend 91662
 
 ========== Fix 1: SELECT ... FOR UPDATE locks the row at the moment it is read ==========
 reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
@@ -9,7 +9,7 @@ reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Sta
 [buyer_b] SELECT stock_qty FROM products WHERE product_id = 14 FOR UPDATE  =>  sent
 [buyer_b] is WAITING for a lock (Lock: transactionid), held by buyer_a
 [buyer_a] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 14  =>  UPDATE 1
-[buyer_a] SELECT txdemo.place_order(1, 14, 1)  =>  {"place_order":600019}
+[buyer_a] SELECT txdemo.place_order(1, 14, 1)  =>  {"place_order":600039}
 [buyer_a] COMMIT  =>  COMMIT
 [buyer_b] SELECT stock_qty FROM products WHERE product_id = 14 FOR UPDATE  =>  finished: {"stock_qty":0}
 # Buyer B only gets to read the stock after A has finished, sees 0 and shows "sold out"
@@ -21,7 +21,7 @@ reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Sta
 [buyer_a] BEGIN  =>  BEGIN
 [buyer_b] BEGIN  =>  BEGIN
 [buyer_a] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 14 AND stock_qty >= 1  =>  UPDATE 1
-[buyer_a] SELECT txdemo.place_order(1, 14, 1)  =>  {"place_order":600020}
+[buyer_a] SELECT txdemo.place_order(1, 14, 1)  =>  {"place_order":600040}
 [buyer_b] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 14 AND stock_qty >= 1  =>  sent
 [buyer_b] is WAITING for a lock (Lock: transactionid), held by buyer_a
 [buyer_a] COMMIT  =>  COMMIT
@@ -37,7 +37,7 @@ reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Sta
 [buyer_a] SELECT stock_qty FROM products WHERE product_id = 14  =>  {"stock_qty":1}
 [buyer_b] SELECT stock_qty FROM products WHERE product_id = 14  =>  {"stock_qty":1}
 [buyer_a] UPDATE products SET stock_qty = 0 WHERE product_id = 14  =>  UPDATE 1
-[buyer_a] SELECT txdemo.place_order(1, 14, 1)  =>  {"place_order":600021}
+[buyer_a] SELECT txdemo.place_order(1, 14, 1)  =>  {"place_order":600041}
 [buyer_b] UPDATE products SET stock_qty = 0 WHERE product_id = 14  =>  sent
 [buyer_b] is WAITING for a lock (Lock: transactionid), held by buyer_a
 [buyer_a] COMMIT  =>  COMMIT

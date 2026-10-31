@@ -1,8 +1,8 @@
 reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
 Listing 90354: Gas Cooker 2 Burner OJ007809 (active: t)
 Listing 92355: Electric Kettle OJ040391 (active: t)
-[staff_1] connected as backend 91147
-[staff_2] connected as backend 91148
+[staff_1] connected as backend 91675
+[staff_2] connected as backend 91676
 
 ========== REPEATABLE READ ==========
 [staff_1] BEGIN ISOLATION LEVEL REPEATABLE READ  =>  BEGIN

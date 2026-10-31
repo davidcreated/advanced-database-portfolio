@@ -1,12 +1,12 @@
-[report] connected as backend 91026
-[buyer_a] connected as backend 91027
+[report] connected as backend 91668
+[buyer_a] connected as backend 91669
 
 ========== READ COMMITTED (the PostgreSQL default) ==========
 reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
 [report] BEGIN ISOLATION LEVEL READ COMMITTED  =>  BEGIN
 [report] SELECT (SELECT count(*) FROM orders WHERE ordered_at >= timestamptz '2026-10-31') AS orders_today, (SELECT stock_qty FROM products WHERE product_id = 2) AS galaxy_stock  =>  {"orders_today":0,"galaxy_stock":12}
 [buyer_a] BEGIN  =>  BEGIN
-[buyer_a] SELECT txdemo.place_order(1, 2, 1)  =>  {"place_order":600022}
+[buyer_a] SELECT txdemo.place_order(1, 2, 1)  =>  {"place_order":600042}
 [buyer_a] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 2  =>  UPDATE 1
 # The buyer has not committed yet. Can the report see the new order? (a dirty read)
 [report] SELECT (SELECT count(*) FROM orders WHERE ordered_at >= timestamptz '2026-10-31') AS orders_today, (SELECT stock_qty FROM products WHERE product_id = 2) AS galaxy_stock  =>  {"orders_today":0,"galaxy_stock":12}
@@ -20,7 +20,7 @@ reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Sta
 [report] BEGIN ISOLATION LEVEL REPEATABLE READ  =>  BEGIN
 [report] SELECT (SELECT count(*) FROM orders WHERE ordered_at >= timestamptz '2026-10-31') AS orders_today, (SELECT stock_qty FROM products WHERE product_id = 2) AS galaxy_stock  =>  {"orders_today":0,"galaxy_stock":12}
 [buyer_a] BEGIN  =>  BEGIN
-[buyer_a] SELECT txdemo.place_order(1, 2, 1)  =>  {"place_order":600023}
+[buyer_a] SELECT txdemo.place_order(1, 2, 1)  =>  {"place_order":600043}
 [buyer_a] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 2  =>  UPDATE 1
 [buyer_a] COMMIT  =>  COMMIT
 # The buyer has committed, but the report keeps reading from the snapshot taken at its first query

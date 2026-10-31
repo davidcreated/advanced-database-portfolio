@@ -1,5 +1,5 @@
-[order_a] connected as backend 91230
-[order_b] connected as backend 91231
+[order_a] connected as backend 91682
+[order_b] connected as backend 91683
 
 ========== The deadlock: each order locks its first item, then wants the other one ==========
 reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
