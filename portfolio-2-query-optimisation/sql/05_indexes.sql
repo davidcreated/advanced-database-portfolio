@@ -6,7 +6,8 @@ DROP INDEX IF EXISTS orders_customer_ordered_idx, orders_ordered_at_idx, order_i
     products_name_trgm_idx, orders_pending_idx, payments_order_idx;
 
 -- Q1: PostgreSQL does not index foreign keys automatically, so a customer's orders meant scanning all 500k.
--- Putting ordered_at second lets the index return the rows already sorted newest first.
+-- ordered_at second keeps each customer's orders in date order inside the index. Q1 still sorts after
+-- its GROUP BY, but only over that one customer's handful of rows.
 CREATE INDEX orders_customer_ordered_idx ON orders (customer_id, ordered_at DESC);
 
 -- Q2 and Q7: date range filters on orders
