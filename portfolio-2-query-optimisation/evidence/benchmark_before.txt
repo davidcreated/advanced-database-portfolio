@@ -1,0 +1,21 @@
+SET
+SET
+CREATE FUNCTION
+ q | median_ms |                                                                scans                                                                
+---+-----------+-------------------------------------------------------------------------------------------------------------------------------------
+ 1 |     11.44 | Index Scan on order_items using order_items_pkey; Seq Scan on orders
+ 2 |    224.21 | Seq Scan on addresses; Seq Scan on order_items; Seq Scan on orders; Seq Scan on states
+ 3 |     38.87 | Index Scan on orders using orders_pkey; Seq Scan on order_items
+ 4 |     40.89 | Seq Scan on products
+ 5 |     56.95 | Seq Scan on orders; Seq Scan on payments
+ 6 |      0.04 | Bitmap Heap Scan on reviews; Bitmap Index Scan using reviews_product_id_customer_id_key; Index Scan on products using products_pkey
+ 7 |    108.67 | Seq Scan on orders
+ 8 |   1563.55 | Seq Scan on categories; Seq Scan on order_items; Seq Scan on orders; Seq Scan on products
+(8 rows)
+
+CREATE FUNCTION
+               write_test               | median_ms 
+----------------------------------------+-----------
+ Place 10,000 orders with one item each |    287.01
+(1 row)
+
