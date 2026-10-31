@@ -64,4 +64,4 @@ PostgreSQL 18 running locally on macOS through Homebrew, with psql for running s
 | 2 | Query Processing and Optimisation | Complete |
 | 3 | Transactions and Concurrency | Complete |
 | 4 | NoSQL and Advanced Data Models | Complete |
-| 5 | Distributed and Cloud Database Exercise | Not started |
+| 5 | Distributed and Cloud Database Exercise | Complete |
