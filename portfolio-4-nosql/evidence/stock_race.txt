@@ -1,0 +1,25 @@
+========== Naive: read the stock, decide in the app, write the new value back ==========
+buyer 1: saw stock 1, bought
+buyer 2: saw stock 1, bought
+buyer 3: saw stock 1, bought
+buyer 4: saw stock 1, bought
+buyer 5: saw stock 1, bought
+buyer 6: saw stock 1, bought
+buyer 7: saw stock 1, bought
+buyer 8: saw stock 1, bought
+buyer 9: saw stock 1, bought
+buyer 10: saw stock 1, bought
+Result: orders placed 10, stock now 0, units that existed 1
+
+========== Atomic: one findOneAndUpdate that checks stock_qty >= 1 and decrements together ==========
+buyer 1: sold out
+buyer 2: sold out
+buyer 3: sold out
+buyer 4: sold out
+buyer 5: sold out
+buyer 6: sold out
+buyer 7: sold out
+buyer 8: sold out
+buyer 9: sold out
+buyer 10: bought
+Result: orders placed 1, stock now 0, units that existed 1

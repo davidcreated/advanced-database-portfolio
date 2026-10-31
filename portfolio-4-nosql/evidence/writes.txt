@@ -1,0 +1,22 @@
+========== A. A new review updates the product's rating summary in one atomic step ==========
+before: {"rating":{"count":2,"average":4.5},"latest_reviews":[{"customer":"Chiamaka"},{"customer":"Nneka"}]}
+after:  {"rating":{"count":3,"average":4},"latest_reviews":[{"customer":"Funmilayo"},{"customer":"Chiamaka"},{"customer":"Nneka"}]}
+The review insert and the product update are two writes. Without a replica set there is no multi document
+transaction, so a crash between them would leave the summary one review behind until it is recalculated.
+
+========== B. The validators reject bad documents ==========
+order with status 'lost'  =>  rejected, code 121 (DocumentValidationFailure) on status
+order with no items  =>  rejected, code 121 (DocumentValidationFailure) on items
+order with a zero quantity item  =>  rejected, code 121 (DocumentValidationFailure) on items
+product stock set to -1  =>  rejected, code 121 (DocumentValidationFailure) on stock_qty
+customer with a local phone format  =>  rejected, code 121 (DocumentValidationFailure) on phone
+review rated 6  =>  rejected, code 121 (DocumentValidationFailure) on rating
+a valid order (control)  =>  accepted
+
+========== C. The price of copying data: a seller renames their business ==========
+In PostgreSQL this is one UPDATE to one sellers row. Here every product carrying the seller summary must change:
+products updated: 22 (products showing the old name before: 22)
+Orders are deliberately left alone: they keep the product names and prices from the day they were placed.
+
+========== Putting everything back ==========
+restored: test review and orders removed, product 1 and the seller name back as they were
