@@ -1,4 +1,7 @@
-psql:portfolio-2-query-optimisation/sql/02_queries.sql:5: NOTICE:  drop cascades to table perf.queries
+psql:sql/02_queries.sql:5: NOTICE:  drop cascades to 3 other objects
+DETAIL:  drop cascades to table perf.queries
+drop cascades to function perf.bench(text,integer)
+drop cascades to function perf.bench_write(text,integer)
 DROP SCHEMA
 CREATE SCHEMA
 SET

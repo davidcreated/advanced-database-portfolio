@@ -1,7 +1,5 @@
 SET
 SET
-psql:portfolio-2-query-optimisation/sql/06_materialised_views.sql:7: NOTICE:  materialized view "mv_monthly_region_sales" does not exist, skipping
-psql:portfolio-2-query-optimisation/sql/06_materialised_views.sql:7: NOTICE:  materialized view "mv_monthly_category_sales" does not exist, skipping
 DROP MATERIALIZED VIEW
 SELECT 144
 SELECT 144
@@ -22,19 +20,19 @@ SELECT 144
 == Live query compared with reading the view (median of 6 warm runs) ==
     report     | median_ms |                                                        scans                                                         
 ---------------+-----------+----------------------------------------------------------------------------------------------------------------------
- Q2 live query |    212.53 | Index Scan on orders using orders_ordered_at_idx; Seq Scan on addresses; Seq Scan on order_items; Seq Scan on states
- Q2 from view  |      0.02 | Seq Scan on mv_monthly_region_sales
- Q8 live query |   1130.90 | Seq Scan on categories; Seq Scan on order_items; Seq Scan on orders; Seq Scan on products
- Q8 from view  |      0.05 | Seq Scan on mv_monthly_category_sales
+ Q2 live query |    319.64 | Index Scan on orders using orders_ordered_at_idx; Seq Scan on addresses; Seq Scan on order_items; Seq Scan on states
+ Q2 from view  |      0.03 | Seq Scan on mv_monthly_region_sales
+ Q8 live query |   2109.42 | Seq Scan on categories; Seq Scan on order_items; Seq Scan on orders; Seq Scan on products
+ Q8 from view  |      0.06 | Seq Scan on mv_monthly_category_sales
 (4 rows)
 
 
 == The cost moves to refresh time ==
 Timing is on.
 REFRESH MATERIALIZED VIEW
-Time: 862.316 ms
+Time: 1380.425 ms (00:01.380)
 REFRESH MATERIALIZED VIEW
-Time: 1868.859 ms (00:01.869)
+Time: 1719.075 ms (00:01.719)
 Timing is off.
 
 == The trade off: a view is only as fresh as its last refresh (rolled back afterwards) ==
