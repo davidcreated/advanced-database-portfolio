@@ -53,7 +53,7 @@ Each portfolio folder is added when I start that activity, and has its own READM
 
 ## Tools
 
-PostgreSQL 18 running locally on macOS through Homebrew, with psql for running scripts and capturing output.
+PostgreSQL 18 running locally on macOS through Homebrew, with psql for running scripts and capturing output. MongoDB Community 9.0.4 with mongosh for the NoSQL work.
 
 
 ## Progress
@@ -63,5 +63,5 @@ PostgreSQL 18 running locally on macOS through Homebrew, with psql for running s
 | 1 | Database Design and Modelling | Complete |
 | 2 | Query Processing and Optimisation | Complete |
 | 3 | Transactions and Concurrency | Complete |
-| 4 | NoSQL and Advanced Data Models | Not started |
+| 4 | NoSQL and Advanced Data Models | Complete |
 | 5 | Distributed and Cloud Database Exercise | Not started |
