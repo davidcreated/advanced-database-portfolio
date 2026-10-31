@@ -1,0 +1,140 @@
+SET search_path TO ojahub;
+SET
+SELECT txdemo.reset();
+                                             reset                                             
+-----------------------------------------------------------------------------------------------
+ reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
+(1 row)
+
+
+========== A. Placing an order: four changes that must all happen together, then COMMIT ==========
+SELECT product_name, stock_qty FROM products WHERE product_id = 2;
+    product_name    | stock_qty 
+--------------------+-----------
+ Samsung Galaxy A15 |        12
+(1 row)
+
+BEGIN;
+BEGIN
+INSERT INTO orders (customer_id, shipping_address_id, order_status, ordered_at)
+VALUES (1, 1, 'pending', timestamptz '2026-10-31 18:00') RETURNING order_id AS order_a 
+INSERT 0 1
+INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES (600034, 2, 2, 245000.00);
+INSERT 0 1
+UPDATE products SET stock_qty = stock_qty - 2 WHERE product_id = 2;
+UPDATE 1
+INSERT INTO payments (order_id, amount, payment_method, payment_status, reference)
+VALUES (600034, 490000.00, 'card', 'successful', 'DEMO-' || 600034);
+INSERT 0 1
+UPDATE orders SET order_status = 'paid' WHERE order_id = 600034;
+UPDATE 1
+COMMIT;
+COMMIT
+SELECT o.order_status, oi.quantity, p.payment_status, p.amount,
+       (SELECT stock_qty FROM products WHERE product_id = 2) AS stock_left
+FROM orders o JOIN order_items oi USING (order_id) JOIN payments p USING (order_id)
+WHERE o.order_id = 600034;
+ order_status | quantity | payment_status |  amount   | stock_left 
+--------------+----------+----------------+-----------+------------
+ paid         |        2 | successful     | 490000.00 |         10
+(1 row)
+
+
+========== B. The card is declined halfway through, so the whole order is rolled back ==========
+BEGIN;
+BEGIN
+INSERT INTO orders (customer_id, shipping_address_id, order_status, ordered_at)
+VALUES (2, 2, 'pending', timestamptz '2026-10-31 18:00') RETURNING order_id AS order_b 
+INSERT 0 1
+INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES (600035, 2, 1, 245000.00);
+INSERT 0 1
+UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 2;
+UPDATE 1
+SELECT stock_qty AS stock_inside_transaction FROM products WHERE product_id = 2;
+ stock_inside_transaction 
+--------------------------
+                        9
+(1 row)
+
+ROLLBACK;
+ROLLBACK
+SELECT (SELECT count(*) FROM orders WHERE order_id = 600035) AS order_b_rows,
+       (SELECT stock_qty FROM products WHERE product_id = 2) AS stock_after_rollback;
+ order_b_rows | stock_after_rollback 
+--------------+----------------------
+            0 |                   10
+(1 row)
+
+
+========== C. An error inside a transaction poisons it: everything after fails and COMMIT becomes ROLLBACK ==========
+BEGIN;
+BEGIN
+UPDATE products SET stock_qty = stock_qty - 25 WHERE product_id = 2;
+psql:sql/01_commit_and_rollback.sql:39: ERROR:  new row for relation "products" violates check constraint "products_stock_qty_check"
+DETAIL:  Failing row contains (2, 2, 2, Samsung Galaxy A15, 128GB, 6GB RAM, 245000.00, -15, t, 2026-10-31 09:55:17.31198+01).
+SELECT stock_qty FROM products WHERE product_id = 2;
+psql:sql/01_commit_and_rollback.sql:40: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+COMMIT;
+ROLLBACK
+SELECT stock_qty AS stock_after_failed_transaction FROM products WHERE product_id = 2;
+ stock_after_failed_transaction 
+--------------------------------
+                             10
+(1 row)
+
+
+========== D. SAVEPOINT: drop the out of stock item but keep the rest of the order ==========
+SELECT product_id, product_name, stock_qty FROM products WHERE product_id IN (13, 14) ORDER BY product_id;
+ product_id |     product_name      | stock_qty 
+------------+-----------------------+-----------
+         13 | Non Stick Pot Set     |        18
+         14 | Standing Fan, 18 Inch |         1
+(2 rows)
+
+BEGIN;
+BEGIN
+INSERT INTO orders (customer_id, shipping_address_id, order_status, ordered_at)
+VALUES (3, 3, 'pending', timestamptz '2026-10-31 18:00') RETURNING order_id AS order_d 
+INSERT 0 1
+INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES (600036, 13, 1, 42000.00);
+INSERT 0 1
+UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 13;
+UPDATE 1
+SAVEPOINT before_fan;
+SAVEPOINT
+INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES (600036, 14, 2, 36500.00);
+INSERT 0 1
+UPDATE products SET stock_qty = stock_qty - 2 WHERE product_id = 14;
+psql:sql/01_commit_and_rollback.sql:54: ERROR:  new row for relation "products" violates check constraint "products_stock_qty_check"
+DETAIL:  Failing row contains (14, 5, 8, Standing Fan, 18 Inch, Three speed, remote control, 36500.00, -1, t, 2026-10-31 09:55:17.31198+01).
+ROLLBACK TO SAVEPOINT before_fan;
+ROLLBACK
+INSERT INTO payments (order_id, amount, payment_method, payment_status, reference)
+VALUES (600036, 42000.00, 'bank_transfer', 'successful', 'DEMO-' || 600036);
+INSERT 0 1
+UPDATE orders SET order_status = 'paid' WHERE order_id = 600036;
+UPDATE 1
+COMMIT;
+COMMIT
+SELECT oi.product_id, p.product_name, oi.quantity, p.stock_qty AS stock_now
+FROM order_items oi JOIN products p USING (product_id)
+WHERE oi.order_id = 600036;
+ product_id |   product_name    | quantity | stock_now 
+------------+-------------------+----------+-----------
+         13 | Non Stick Pot Set |        1 |        17
+(1 row)
+
+SELECT product_id, product_name, stock_qty FROM products WHERE product_id = 14;
+ product_id |     product_name      | stock_qty 
+------------+-----------------------+-----------
+         14 | Standing Fan, 18 Inch |         1
+(1 row)
+
+
+========== Clean up ==========
+SELECT txdemo.reset();
+                                             reset                                             
+-----------------------------------------------------------------------------------------------
+ reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
+(1 row)
+

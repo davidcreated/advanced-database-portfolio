@@ -1,0 +1,36 @@
+[order_a] connected as backend 91682
+[order_b] connected as backend 91683
+
+========== The deadlock: each order locks its first item, then wants the other one ==========
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
+[order_a] BEGIN  =>  BEGIN
+[order_b] BEGIN  =>  BEGIN
+[order_a] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 9  =>  UPDATE 1
+[order_b] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 13  =>  UPDATE 1
+[order_a] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 13  =>  sent
+[order_a] is WAITING for a lock (Lock: transactionid), held by order_b
+[order_b] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 9  =>  sent
+[order_b] is WAITING for a lock (Lock: transactionid), held by order_a
+# Each is waiting for the other, so neither can ever finish. After deadlock_timeout (1s) PostgreSQL picks a victim.
+[order_a] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 13  =>  finished: ERROR 40P01: deadlock detected
+[order_b] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 9  =>  finished: UPDATE 1
+[order_a] ROLLBACK  =>  ROLLBACK
+[order_b] COMMIT  =>  COMMIT
+Stock now: Handmade Leather Bag = 9, Non Stick Pot Set = 17
+
+========== The fix: every order locks its products in product_id order before changing anything ==========
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
+[order_a] BEGIN  =>  BEGIN
+[order_b] BEGIN  =>  BEGIN
+[order_a] SELECT product_id FROM products WHERE product_id IN (13, 9) ORDER BY product_id FOR UPDATE  =>  {"product_id":9} {"product_id":13}
+[order_b] SELECT product_id FROM products WHERE product_id IN (13, 9) ORDER BY product_id FOR UPDATE  =>  sent
+[order_b] is WAITING for a lock (Lock: transactionid), held by order_a
+# Order B queues behind A on the very first product instead of grabbing the second one, so no cycle can form
+[order_a] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id IN (9, 13)  =>  UPDATE 2
+[order_a] COMMIT  =>  COMMIT
+[order_b] SELECT product_id FROM products WHERE product_id IN (13, 9) ORDER BY product_id FOR UPDATE  =>  finished: {"product_id":9} {"product_id":13}
+[order_b] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id IN (9, 13)  =>  UPDATE 2
+[order_b] COMMIT  =>  COMMIT
+Stock now: Handmade Leather Bag = 8, Non Stick Pot Set = 16
+all sessions closed
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1

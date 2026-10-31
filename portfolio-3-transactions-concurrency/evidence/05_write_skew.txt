@@ -1,0 +1,35 @@
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
+Listing 90354: Gas Cooker 2 Burner OJ007809 (active: t)
+Listing 92355: Electric Kettle OJ040391 (active: t)
+[staff_1] connected as backend 91675
+[staff_2] connected as backend 91676
+
+========== REPEATABLE READ ==========
+[staff_1] BEGIN ISOLATION LEVEL REPEATABLE READ  =>  BEGIN
+[staff_2] BEGIN ISOLATION LEVEL REPEATABLE READ  =>  BEGIN
+[staff_1] SELECT count(*) AS active_home_listings FROM products WHERE seller_id = 2 AND category_id = 8 AND is_active  =>  {"active_home_listings":2}
+[staff_2] SELECT count(*) AS active_home_listings FROM products WHERE seller_id = 2 AND category_id = 8 AND is_active  =>  {"active_home_listings":2}
+# Both see 2, so both decide it is safe to switch one off. They touch different rows, so nobody waits.
+[staff_1] UPDATE products SET is_active = false WHERE product_id = 90354  =>  UPDATE 1
+[staff_2] UPDATE products SET is_active = false WHERE product_id = 92355  =>  UPDATE 1
+[staff_1] COMMIT  =>  COMMIT
+[staff_2] COMMIT  =>  COMMIT
+Result: active Home and Kitchen listings for Lagos Gadget Hub = 0 (the rule needs at least 1)
+
+========== SERIALIZABLE ==========
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
+[staff_1] BEGIN ISOLATION LEVEL SERIALIZABLE  =>  BEGIN
+[staff_2] BEGIN ISOLATION LEVEL SERIALIZABLE  =>  BEGIN
+[staff_1] SELECT count(*) AS active_home_listings FROM products WHERE seller_id = 2 AND category_id = 8 AND is_active  =>  {"active_home_listings":2}
+[staff_2] SELECT count(*) AS active_home_listings FROM products WHERE seller_id = 2 AND category_id = 8 AND is_active  =>  {"active_home_listings":2}
+[staff_1] UPDATE products SET is_active = false WHERE product_id = 90354  =>  UPDATE 1
+[staff_2] UPDATE products SET is_active = false WHERE product_id = 92355  =>  UPDATE 1
+[staff_1] COMMIT  =>  COMMIT
+[staff_2] COMMIT  =>  ERROR 40001: could not serialize access due to read/write dependencies among transactions
+# Staff 2 retries in a new transaction, sees only 1 active listing left, and the app refuses
+[staff_2] BEGIN ISOLATION LEVEL SERIALIZABLE  =>  BEGIN
+[staff_2] SELECT count(*) AS active_home_listings FROM products WHERE seller_id = 2 AND category_id = 8 AND is_active  =>  {"active_home_listings":1}
+[staff_2] ROLLBACK  =>  ROLLBACK
+Result: active Home and Kitchen listings for Lagos Gadget Hub = 1 (the rule needs at least 1)
+all sessions closed
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1

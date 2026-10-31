@@ -1,0 +1,26 @@
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
+[buyer_a] connected as backend 91654
+[buyer_b] connected as backend 91655
+
+# Both buyers open the product page at the same moment
+[buyer_a] BEGIN  =>  BEGIN
+[buyer_b] BEGIN  =>  BEGIN
+[buyer_a] SELECT stock_qty FROM products WHERE product_id = 14  =>  {"stock_qty":1}
+[buyer_b] SELECT stock_qty FROM products WHERE product_id = 14  =>  {"stock_qty":1}
+
+# Both apps saw 1 in stock, so both compute 1 - 1 = 0 and go ahead
+[buyer_a] UPDATE products SET stock_qty = 0 WHERE product_id = 14  =>  UPDATE 1
+[buyer_a] SELECT txdemo.place_order(1, 14, 1)  =>  {"place_order":600037}
+[buyer_b] UPDATE products SET stock_qty = 0 WHERE product_id = 14  =>  sent
+[buyer_b] is WAITING for a lock (Lock: transactionid), held by buyer_a
+
+# Buyer A commits; the row lock is released and buyer B's update simply goes through
+[buyer_a] COMMIT  =>  COMMIT
+[buyer_b] UPDATE products SET stock_qty = 0 WHERE product_id = 14  =>  finished: UPDATE 1
+[buyer_b] SELECT txdemo.place_order(2, 14, 1)  =>  {"place_order":600038}
+[buyer_b] COMMIT  =>  COMMIT
+
+# Result
+Standing Fan orders placed: 2, stock now: 0, units that actually existed: 1
+all sessions closed
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
