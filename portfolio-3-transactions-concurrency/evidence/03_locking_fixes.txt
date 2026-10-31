@@ -1,0 +1,52 @@
+[buyer_a] connected as backend 90832
+[buyer_b] connected as backend 90833
+
+========== Fix 1: SELECT ... FOR UPDATE locks the row at the moment it is read ==========
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
+[buyer_a] BEGIN  =>  BEGIN
+[buyer_b] BEGIN  =>  BEGIN
+[buyer_a] SELECT stock_qty FROM products WHERE product_id = 14 FOR UPDATE  =>  {"stock_qty":1}
+[buyer_b] SELECT stock_qty FROM products WHERE product_id = 14 FOR UPDATE  =>  sent
+[buyer_b] is WAITING for a lock (Lock: transactionid), held by buyer_a
+[buyer_a] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 14  =>  UPDATE 1
+[buyer_a] SELECT txdemo.place_order(1, 14, 1)  =>  {"place_order":600019}
+[buyer_a] COMMIT  =>  COMMIT
+[buyer_b] SELECT stock_qty FROM products WHERE product_id = 14 FOR UPDATE  =>  finished: {"stock_qty":0}
+# Buyer B only gets to read the stock after A has finished, sees 0 and shows "sold out"
+[buyer_b] ROLLBACK  =>  ROLLBACK
+Result: Standing Fan orders placed: 1, stock now: 0
+
+========== Fix 2: one atomic UPDATE that checks and decrements in the same statement ==========
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
+[buyer_a] BEGIN  =>  BEGIN
+[buyer_b] BEGIN  =>  BEGIN
+[buyer_a] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 14 AND stock_qty >= 1  =>  UPDATE 1
+[buyer_a] SELECT txdemo.place_order(1, 14, 1)  =>  {"place_order":600020}
+[buyer_b] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 14 AND stock_qty >= 1  =>  sent
+[buyer_b] is WAITING for a lock (Lock: transactionid), held by buyer_a
+[buyer_a] COMMIT  =>  COMMIT
+[buyer_b] UPDATE products SET stock_qty = stock_qty - 1 WHERE product_id = 14 AND stock_qty >= 1  =>  finished: UPDATE 0
+# After A commits, PostgreSQL rechecks B's WHERE clause against the new row: 0 rows updated means sold out
+[buyer_b] ROLLBACK  =>  ROLLBACK
+Result: Standing Fan orders placed: 1, stock now: 0
+
+========== Fix 3: REPEATABLE READ refuses to let B overwrite a row that changed after B read it ==========
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
+[buyer_a] BEGIN ISOLATION LEVEL REPEATABLE READ  =>  BEGIN
+[buyer_b] BEGIN ISOLATION LEVEL REPEATABLE READ  =>  BEGIN
+[buyer_a] SELECT stock_qty FROM products WHERE product_id = 14  =>  {"stock_qty":1}
+[buyer_b] SELECT stock_qty FROM products WHERE product_id = 14  =>  {"stock_qty":1}
+[buyer_a] UPDATE products SET stock_qty = 0 WHERE product_id = 14  =>  UPDATE 1
+[buyer_a] SELECT txdemo.place_order(1, 14, 1)  =>  {"place_order":600021}
+[buyer_b] UPDATE products SET stock_qty = 0 WHERE product_id = 14  =>  sent
+[buyer_b] is WAITING for a lock (Lock: transactionid), held by buyer_a
+[buyer_a] COMMIT  =>  COMMIT
+[buyer_b] UPDATE products SET stock_qty = 0 WHERE product_id = 14  =>  finished: ERROR 40001: could not serialize access due to concurrent update
+[buyer_b] ROLLBACK  =>  ROLLBACK
+# The app catches SQLSTATE 40001 and retries in a fresh transaction, which sees the real stock
+[buyer_b] BEGIN ISOLATION LEVEL REPEATABLE READ  =>  BEGIN
+[buyer_b] SELECT stock_qty FROM products WHERE product_id = 14  =>  {"stock_qty":0}
+[buyer_b] ROLLBACK  =>  ROLLBACK
+Result: Standing Fan orders placed: 1, stock now: 0
+all sessions closed
+reset: demo orders removed, Galaxy A15 = 12, Leather Bag = 10, Pot Set = 18, Standing Fan = 1
