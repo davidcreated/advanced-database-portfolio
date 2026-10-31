@@ -1,0 +1,20 @@
+========== Zones ==========
+  NORTH: regions from the lowest key up to (not including) "South East"
+  SOUTH: regions from "South East" up to (not including) the highest key
+
+========== Loading all orders through the mongos router ==========
+  loaded 500010 orders in 16s
+
+========== Which shard holds which regions (asked of each shard directly) ==========
+  north shard (27031): 209572 orders
+    North Central 94894
+    North East    38372
+    North West    76306
+  south shard (27032): 290438 orders
+    South East    32044
+    South South   67341
+    South West    191053
+
+========== Chunk placement from the router's point of view ==========
+  north: 1 chunk(s)
+  south: 1 chunk(s)
