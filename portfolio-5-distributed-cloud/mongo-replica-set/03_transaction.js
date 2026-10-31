@@ -1,9 +1,11 @@
 // OjaHub Marketplace: a multi document transaction, which a replica set allows and a single server did not.
 // Closes the gap from Portfolio 4: the review and the product's rating summary now change together or not at all.
-// Run: mongosh --quiet "mongodb://localhost:27018,localhost:27019,localhost:27020/ojahub?replicaSet=ojahub-rs" 03_transaction.js
+// Run: mongosh --quiet --nodb 03_transaction.js
 
-db = db.getSiblingDB("ojahub");
 const RS = "mongodb://localhost:27018,localhost:27019,localhost:27020/ojahub?replicaSet=ojahub-rs";
+// Connect to the replica set explicitly, so this can never run against the standalone 27017 server by mistake
+db = new Mongo(RS).getDB("ojahub");
+if (db.hello().setName !== "ojahub-rs") throw new Error("not connected to the ojahub-rs replica set");
 const outsider = new Mongo(RS).getDB("ojahub");
 const summary = (d) => JSON.stringify(d.products.findOne({ _id: 1 }, { _id: 0, rating: 1 }).rating) +
                        ", test reviews: " + d.reviews.countDocuments({ _id: { $gte: 900000 } });

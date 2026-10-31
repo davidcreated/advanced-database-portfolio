@@ -1,12 +1,14 @@
 // OjaHub Marketplace: replication, write concern and read consistency on the replica set
-// Run: mongosh --quiet "mongodb://localhost:27018,localhost:27019,localhost:27020/ojahub?replicaSet=ojahub-rs" 01_replication.js
+// Run: mongosh --quiet --nodb 01_replication.js
 
 const RS = "mongodb://localhost:27018,localhost:27019,localhost:27020/ojahub?replicaSet=ojahub-rs";
-db = db.getSiblingDB("ojahub");
+// Connect to the replica set explicitly, so this can never run against the standalone 27017 server by mistake
+db = new Mongo(RS).getDB("ojahub");
+if (db.hello().setName !== "ojahub-rs") throw new Error("not connected to the ojahub-rs replica set");
 const ms = (t) => (Math.round(t * 1000) / 1000).toFixed(3);
 
 print("========== 1. Members and how far behind the primary they are ==========");
-const st = rs.status();
+const st = db.adminCommand({ replSetGetStatus: 1 });
 const primaryOptime = st.members.find(m => m.stateStr === "PRIMARY").optimeDate;
 st.members.forEach(m => print("  " + m.name + "  " + m.stateStr.padEnd(9) + "  behind primary: " + ((primaryOptime - m.optimeDate) / 1000) + "s"));
 
