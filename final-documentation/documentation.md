@@ -63,7 +63,25 @@ The design places payments and stock on PostgreSQL with a synchronous standby in
 
 ## Use of AI
 
-<div class="todo"><em>To be completed by the student before submission.</em></div>
+I used Claude (Anthropic), an AI coding assistant, in every part of this portfolio. All scripts ran on my own computer.
+
+**Portfolio 1.** AI generated the schema, sample data, constraint tests, ER diagram and README draft.<br>
+I chose PostgreSQL, approved the design, reviewed the results, and pushed and merged the work.
+
+**Portfolio 2.** AI generated the test data, queries, benchmarks, indexes and views, and drafted the analysis.<br>
+I approved the plan, reviewed the results, and pushed and merged the work.
+
+**Portfolio 3.** AI generated the transaction and concurrency scripts and drafted the write up.<br>
+I approved the plan, reviewed the results, and pushed and merged the work.
+
+**Portfolio 4.** AI generated the MongoDB model, migration, queries and write tests, and drafted the write up.<br>
+I chose MongoDB, approved the plan, reviewed the results, and pushed and merged the work.
+
+**Portfolio 5.** AI generated the cluster setup and demonstration scripts, and drafted the write up and cloud design.<br>
+I chose local clusters over a cloud account, reviewed the results, and pushed and merged the work.
+
+**This document.** AI drafted the summary and the reflection.<br>
+I chose the format and reviewed the content before submitting.
 
 ## Individual Technical Reflection
 
