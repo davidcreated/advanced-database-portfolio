@@ -1,0 +1,8 @@
+Customer 4821 lives in the South East, and order 245678 shipped to the North East.
+
+query | shard key in filter | shards asked | docs examined per shard | router stage | median ms
+Pending orders in North West | yes, region | 1 (north) | north 76306 | SINGLE_SHARD | 66.91
+One order by region and _id | yes, full key | 1 (north) | north 1 | SINGLE_SHARD | 0.76
+Order history for customer 4821 | no | 2 (north, south) | north 0, south 10 | SHARD_MERGE_SORT | 0.98
+Revenue by region, last quarter | no | 2 (north, south) | north 32245, south 44682 | merged on router | 53.57
+Revenue for South West only, last quarter | yes, region | 1 (south) | south 44682 | one shard, no merge | 48.73

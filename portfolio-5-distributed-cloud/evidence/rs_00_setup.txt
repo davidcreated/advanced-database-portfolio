@@ -1,0 +1,10 @@
+started member on 27018
+started member on 27019
+started member on 27020
+replica set ojahub-rs initiated, primary is localhost:27018
+copying products, reviews and orders from the 27017 database...
+copied in 29s
+  localhost:27018  PRIMARY  health 1
+  localhost:27019  SECONDARY  health 1
+  localhost:27020  SECONDARY  health 1
+documents: products 100014, reviews 110046, orders 500010

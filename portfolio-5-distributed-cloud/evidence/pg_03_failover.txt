@@ -1,0 +1,20 @@
+========== 1. Before: one primary, one standby ==========
+  primary 5432: in recovery f, timeline 1
+  replica 5433: in recovery t, timeline 1
+
+========== 2. The primary is declared dead, so the replica is promoted ==========
+  pg_promote() finished in 133 ms
+  promoted 5433: in recovery f, timeline 2
+  it now takes orders: order 600082 for customer 2
+
+========== 3. Split brain: the old primary was never really dead ==========
+  the old primary also takes an order: order 600050 for customer 1
+  on 5432: order 600050 belongs to customer 1
+  on 5433: order 600082 belongs to customer 2
+  replicas streaming from 5432 now: 0
+  Each side now holds an order the other has never seen, and nothing will reconcile them.
+  The IDs differ by 32 only because a promoted server can skip ahead in its sequences (PostgreSQL
+  logs sequence values 32 at a time). After that many more orders on 5432 the order numbers would collide.
+  Real failover tooling stops (fences) the old primary first, then rebuilds it as a standby with pg_rewind.
+
+Demo order removed from 5432. Run teardown.sh to discard the promoted 5433 copy.

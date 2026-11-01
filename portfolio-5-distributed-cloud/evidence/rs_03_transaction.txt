@@ -1,0 +1,13 @@
+========== A. Review and rating summary committed together ==========
+before:              {"count":2,"average":4.5}, test reviews: 0
+inside, uncommitted: {"count":3,"average":4}, test reviews: 1
+seen by others now:  {"count":2,"average":4.5}, test reviews: 0
+after commit:        {"count":3,"average":4}, test reviews: 1
+
+========== B. A transaction that fails halfway is rolled back completely ==========
+inside, uncommitted: {"count":4,"average":3.25}, test reviews: 2
+the app then finds the reviewer never received this product, so it aborts
+after abort:         {"count":3,"average":4}, test reviews: 1
+review 900002 exists: false
+
+Restored: test reviews removed and product 1 put back as it was: {"count":2,"average":4.5}, test reviews: 0

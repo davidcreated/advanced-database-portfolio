@@ -1,0 +1,30 @@
+========== 1. Asynchronous: the primary commits without waiting for the replica ==========
+  replica sync_state: async
+  local          500 commits, average commit latency 0.089 ms
+
+========== 2. Synchronous: the primary waits for the replica on every commit ==========
+  replica sync_state: sync
+  on             500 commits, average commit latency 0.143 ms
+  remote_apply   500 commits, average commit latency 0.139 ms
+  on           = wait until the replica has the commit safely on disk
+  remote_apply = also wait until it is visible to queries on the replica
+
+========== 3. The replica goes down while the primary is synchronous ==========
+  replica stopped
+  replica sync_state: not connected
+  placing an order with statement_timeout = 3s...
+  after 5s the commit is still waiting (IPC: SyncRep)
+  statement_timeout never fires here: PostgreSQL switches it off before the commit step, so the order would wait forever
+  an operator cancels the stuck commit:
+  pg_cancel_backend: true
+  WARNING:  canceling wait for synchronous replication due to user request
+  DETAIL:  The transaction has already committed locally, but might not have been replicated to the standby.
+  insert returned id 1501
+  is that order on the primary anyway? 1 row
+
+========== 4. The replica comes back and catches up ==========
+  replica sync_state: sync
+  rows on the replica: 1501, on the primary: 1501
+
+Primary set back to asynchronous; test table dropped
+  replica sync_state: async

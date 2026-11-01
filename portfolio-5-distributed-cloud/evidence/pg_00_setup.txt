@@ -1,0 +1,9 @@
+Cloning the primary with pg_basebackup...
+Base backup done in 3s, replica size 455M
+Replica started on port 5433
+
+On the replica (5433):
+  in recovery (read only standby): true
+  orders visible: 500010
+On the primary (5432):
+  replica ojahub_replica | state streaming | sync_state async

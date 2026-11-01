@@ -1,0 +1,26 @@
+========== 1. A new order on the primary, and how soon the replica sees it ==========
+primary committed order 600049 at WAL position 0/ED0102E0
+replica replayed past that position after 34.0 ms (0 extra polls)
+replica now reads: order 600049 for customer 1, status pending
+
+========== 2. Replica lag while the primary writes 1 million rows ==========
+NOTICE:  table "lag_test" does not exist, skipping
+time      bytes behind   replay_lag
+00:15:49.196              0   00:00:00.002499
+00:15:49.436        2793536   00:00:00.005445
+00:15:49.682        4603904   00:00:00.061414
+00:15:49.922        8388640   00:00:00.058802
+00:15:50.155        4824080   00:00:00.142193
+00:15:50.387        7051512   00:00:00.185229
+00:15:50.618        2121760   00:00:00.050693
+00:15:50.858        3342384   00:00:00.071063
+00:15:51.093        1818704   00:00:00.06395
+00:15:51.329        8388640   00:00:00.039839
+00:15:51.564        5295888   00:00:00.158298
+00:15:52.817 (after)              0   00:00:00.080303
+rows on primary: 1000000, rows on replica: 1000000
+
+========== 3. The replica is read only ==========
+replica says: ERROR:  cannot execute UPDATE in a read-only transaction
+
+Cleaned up: test table dropped and demo order removed on the primary (and so on the replica)
